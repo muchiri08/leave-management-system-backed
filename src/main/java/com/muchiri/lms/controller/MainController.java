@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.muchiri.lms.exception.LeaveSystemException;
 import com.muchiri.lms.model.DepartmentModel;
 import com.muchiri.lms.model.EmployeeModel;
+import com.muchiri.lms.model.PublicHolidayModel;
 import com.muchiri.lms.service.DepartmentService;
 import com.muchiri.lms.service.EmployeeService;
+import com.muchiri.lms.service.PublicHolidayService;
 import com.muchiri.lms.service.RoleService;
 
 import lombok.AllArgsConstructor;
@@ -34,6 +36,7 @@ public class MainController {
 	private final EmployeeService employeeService;
 	private final DepartmentService departmentService;
 	private final RoleService roleService;
+	PublicHolidayService publicHolidayService;
 	
 	@PostMapping("/newEmployee")
 	@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
@@ -61,16 +64,16 @@ public class MainController {
 	}
 	
 	
-	@PostConstruct
-	public void initializeRoles() {
-		roleService.initialiseRoles();
-	}
-	
-	@PostConstruct
-	public void initializeAdmin() {
-		departmentService.initAdminDepartment();
-		employeeService.initAdmin();
-	}
+//	@PostConstruct
+//	public void initializeRoles() {
+//		roleService.initialiseRoles();
+//	}
+//	
+//	@PostConstruct
+//	public void initializeAdmin() {
+//		departmentService.initAdminDepartment();
+//		employeeService.initAdmin();
+//	}
 	
 	@GetMapping("/employees")
 	@PreAuthorize("hasAnyRole('ADMIN', 'HR', 'HIGHER_LEVEL')")
@@ -140,17 +143,41 @@ public class MainController {
 		
 		return ResponseEntity.ok(response);
 	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+	@PostMapping("/create-holiday")
+	public PublicHolidayModel createHoliday(@RequestBody PublicHolidayModel holidayModel) {
+		return publicHolidayService.createPublicHoliday(holidayModel);
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'HR', 'HIGHER_LEVEL', 'HOD', 'CASUAL_EMPLOYEE')")
+	@GetMapping("/holidays")
+	public List<PublicHolidayModel> getAllHolidays(){
+		return publicHolidayService.getAllHolidays();
+	}
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@DeleteMapping("/delete-holiday/{id}")
+	public ResponseEntity<Map<String, Boolean>> deletePublicHoliday(@PathVariable("id") Long id){
+		boolean deleted = false;
+		deleted = publicHolidayService.deleteHoliday(id);
+		
+		Map<String, Boolean> response = new HashMap<>();
+		response.put("deleted", deleted);
+		
+		return ResponseEntity.ok(response);
+	}
 		
 	
 	//checks if response body of employee is empty or not
 	private boolean employeePostIsEmpty(EmployeeModel employee) {
-		if (employee.getFirstName().isBlank() ||
-				employee.getLastName().isBlank() || 
-				employee.getEmail().isBlank() ||
-				employee.getPassword().isBlank() ||
-				employee.getGender().isBlank() || 
-				employee.getDepartment().isBlank() || 
-				employee.getRole().isBlank()) {
+		if (employee.getFirstName() == "" ||
+				employee.getLastName() == "" || 
+				employee.getEmail() == "" ||
+				employee.getPassword() == "" ||
+				employee.getGender() == "" || 
+				employee.getDepartment() == "" || 
+				employee.getRole() == "") {
 			return true;
 		}
 		return false;

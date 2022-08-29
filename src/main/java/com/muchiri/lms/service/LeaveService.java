@@ -282,7 +282,7 @@ public class LeaveService {
 	}
 
 	// converts string to date
-	private LocalDate convertedDate(String date) {
+	public LocalDate convertedDate(String date) {
 		LocalDate mDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		return mDate;
 	}

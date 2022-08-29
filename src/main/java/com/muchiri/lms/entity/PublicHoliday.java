@@ -30,5 +30,6 @@ public class PublicHoliday {
 		)
 	private Long id;
 	private LocalDate holidayDate;
+	private String description;
 
 }

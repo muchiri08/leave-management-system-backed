@@ -1,9 +1,13 @@
 package com.muchiri.lms.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.muchiri.lms.entity.PublicHoliday;
@@ -33,7 +37,7 @@ public class PublicHolidayService {
 		List<PublicHolidayModel> mHolidays = holidays.stream()
 				.map(holiday -> new PublicHolidayModel(holiday.getHolidayDate().toString(), holiday.getDescription()))
 				.collect(Collectors.toList());
-		
+
 		return mHolidays;
 	}
 
@@ -42,6 +46,27 @@ public class PublicHolidayService {
 		publicHolidayRepository.delete(holiday);
 
 		return true;
+	}
+
+	/*
+	 * Trigered every 23:59:00hrs of last day of every month. If year has ended,
+	 * holiday dates are inremented by 1 year
+	 */
+	@Scheduled(cron = "00 59 23 L * ?")
+	public void getHolidayDates() {
+
+		List<PublicHoliday> holidays = publicHolidayRepository.findAll();
+		LocalDate date = holidays.get(0).getHolidayDate();
+
+		LocalDate endOfTheCurrentYear = date.with(TemporalAdjusters.lastDayOfYear());
+		LocalDateTime endOfCurrentYearWithEndTimeOfTheLastDayMinusOneMin = endOfTheCurrentYear
+				.atTime(LocalTime.MAX.minusMinutes(1));
+
+		if (LocalDateTime.now().isAfter(endOfCurrentYearWithEndTimeOfTheLastDayMinusOneMin)) {
+			holidays.forEach(holiday -> holiday.setHolidayDate(holiday.getHolidayDate().plusYears(1)));
+			publicHolidayRepository.saveAll(holidays);
+		}
+
 	}
 
 }

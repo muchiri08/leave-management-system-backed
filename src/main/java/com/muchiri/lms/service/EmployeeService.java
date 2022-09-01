@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.muchiri.lms.entity.Balance;
 import com.muchiri.lms.entity.Department;
 import com.muchiri.lms.entity.Employee;
 import com.muchiri.lms.entity.Role;
@@ -15,7 +17,9 @@ import com.muchiri.lms.exception.EntityNotFoundException;
 import com.muchiri.lms.exception.ExistingEmployeeException;
 import com.muchiri.lms.exception.ExistingHODException;
 import com.muchiri.lms.model.EmployeeModel;
+import com.muchiri.lms.repository.BalanceRepository;
 import com.muchiri.lms.repository.EmployeeRepository;
+import com.muchiri.lms.repository.LeaveTypeRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +33,8 @@ public class EmployeeService {
 	private final DepartmentService departmentService;
 	private final RoleService roleService;
 	private final PasswordEncoder passwordEncoder;
+	private final BalanceRepository balanceRepository;
+	private final LeaveTypeRepository leaveTypeRepository;
 
 	// Creates a new employee
 	// Accessible by hr and admin
@@ -59,11 +65,24 @@ public class EmployeeService {
 		employee.setGender(employeeModel.getGender());
 		employee.setDepartment(department);
 		employee.setRole(role);
+		
+		boolean saved = false;
 
 		if (checkIfEmployeeRoleHod(employee) && checkIfHodExists(employee)) {
 			throw new ExistingHODException("Already existing HOD in that department");
 		} else {
 			employeeRepository.save(employee);
+			saved = true;
+		}
+		
+		int totalLeaves = leaveTypeRepository.getSum();
+		Balance balance = new Balance();
+		
+		if (saved) {
+			balance.setEmployeeId(employee.getEmployeeId());
+			balance.setLeaveBalance(totalLeaves);
+			
+			balanceRepository.save(balance);
 		}
 
 	}
@@ -192,6 +211,7 @@ public class EmployeeService {
 
 		return false;
 	}
+	
 
 	private boolean checkIfEmployeeRoleHod(Employee employee) {
 		if (employee.getRole().getRoleName().equals("HOD")) {

@@ -10,10 +10,11 @@ import com.muchiri.lms.entity.LeaveType;
 
 @Repository
 public interface LeaveTypeRepository extends JpaRepository<LeaveType, Long> {
-	
-	@Query(
-			"select s from LeaveType s where s.leaveName = ?1"
-		)
+
+	@Query("SELECT s FROM LeaveType s WHERE s.leaveName = ?1")
 	Optional<LeaveType> findByLeaveTypeName(String name);
+
+	@Query("SELECT SUM(lt.noOfDays) FROM LeaveType lt")
+	Integer getSum();
 
 }

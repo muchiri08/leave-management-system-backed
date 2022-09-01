@@ -3,10 +3,12 @@ package com.muchiri.lms.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import com.muchiri.lms.entity.LeaveType;
 import com.muchiri.lms.exception.LeaveSystemException;
 import com.muchiri.lms.model.LeaveModel;
 import com.muchiri.lms.model.LeaveTypeModel;
+import com.muchiri.lms.repository.BalanceRepository;
 import com.muchiri.lms.repository.EmployeeRepository;
 import com.muchiri.lms.repository.LeaveRepository;
 import com.muchiri.lms.repository.LeaveTypeRepository;
@@ -30,6 +33,7 @@ public class LeaveService {
 	private final LeaveTypeRepository leaveTypeRepository;
 	private final EmployeeRepository employeeRepository;
 	private final MailSenderService mailSenderService;
+	private final BalanceRepository balanceRepository;
 
 	// creates new leave type
 	public void createLeaveType(LeaveTypeModel leaveTypeModel) {
@@ -282,9 +286,15 @@ public class LeaveService {
 	}
 
 	// converts string to date
-	public LocalDate convertedDate(String date) {
+	private LocalDate convertedDate(String date) {
 		LocalDate mDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		return mDate;
 	}
+
+//	@Scheduled(cron = "00 57 12 * * ?")
+//	@Transactional
+//	public void testUpdate() {
+//		balanceRepository.updateEmployeeBalance(71, 18L);
+//	}
 
 }

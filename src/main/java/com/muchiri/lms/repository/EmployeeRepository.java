@@ -11,9 +11,10 @@ import com.muchiri.lms.entity.Employee;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-	@Query(value = "select * from employee where department =?1 ", nativeQuery = true)
+	@Query(value = "SELECT * FROM employee WHERE department =?1 ", nativeQuery = true)
 	List<Employee> findAllByDepartment(String depatment);
 	
 	Optional<Employee> findByEmail(String email);
+	
 
 }

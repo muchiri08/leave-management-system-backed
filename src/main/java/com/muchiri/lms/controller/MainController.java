@@ -75,6 +75,11 @@ public class MainController {
 //		employeeService.initAdmin();
 //	}
 	
+//	@PostConstruct
+//	public void initializeHolidays() {
+//		publicHolidayService.initializeHolidays();
+//	}
+	
 	@GetMapping("/employees")
 	@PreAuthorize("hasAnyRole('ADMIN', 'HR', 'HIGHER_LEVEL')")
 	public List<EmployeeModel> employees(){

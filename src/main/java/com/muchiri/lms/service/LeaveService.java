@@ -3,12 +3,10 @@ package com.muchiri.lms.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +20,15 @@ import com.muchiri.lms.repository.BalanceRepository;
 import com.muchiri.lms.repository.EmployeeRepository;
 import com.muchiri.lms.repository.LeaveRepository;
 import com.muchiri.lms.repository.LeaveTypeRepository;
+import com.muchiri.lms.repository.PublicHolidayRepository;
+import com.muchiri.lms.util.MainUtil;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class LeaveService {
 
 	private final LeaveRepository leaveRepository;
@@ -34,6 +36,8 @@ public class LeaveService {
 	private final EmployeeRepository employeeRepository;
 	private final MailSenderService mailSenderService;
 	private final BalanceRepository balanceRepository;
+	private final MainUtil mainUtil;
+	private final PublicHolidayRepository publicHolidayRepository;
 
 	// creates new leave type
 	public void createLeaveType(LeaveTypeModel leaveTypeModel) {
@@ -96,6 +100,7 @@ public class LeaveService {
 	 * @param long id is the id of the request creator(employee)
 	 * 
 	 */
+	@Transactional
 	public LeaveModel createLeaveRequest(Long id, LeaveModel leaveModel) {
 		Employee employee = employeeRepository.findById(id).get();
 		String status = "Requested";
@@ -114,7 +119,8 @@ public class LeaveService {
 		leave.setApprovedBy(approvedBy);
 
 		leaveRepository.save(leave);
-
+		
+		//Sending Email
 		Employee oneToBeSentMail = new Employee();
 
 		List<Employee> employees = employeeRepository.findAll();
@@ -158,7 +164,7 @@ public class LeaveService {
 					.map(filteredHl -> new Employee(filteredHl.getFirstName(), filteredHl.getLastName(),
 							filteredHl.getEmail(), filteredHl.getDepartment(), filteredHl.getRole()))
 					.collect(Collectors.toList());
-
+ 
 			if (hlEmployees.size() != 1) {
 				throw new LeaveSystemException("There is more than hod in this department");
 			}
@@ -167,6 +173,19 @@ public class LeaveService {
 					employee.getFirstName() + " " + employee.getLastName() + " is applying for leave from "
 							+ leaveModel.getStartDate() + " to" + leaveModel.getEndDate());
 		}
+		
+		//Calculating Balance
+				Integer employeeLeaveBalance = balanceRepository.getBalByEmployeeId(employee.getEmployeeId());
+				List<LocalDate> holidayDates = publicHolidayRepository.getHolidaysDates();
+				Integer noOfHolidaysBetween = mainUtil.getNoOfHolidays(holidayDates, leave.getStartDate(), leave.getEndDate());
+				Integer noOfSundaysBetween = mainUtil.getNoOfSundays(leave.getStartDate(), leave.getEndDate());
+				Long totalNoOfLeaveDaysApplied = mainUtil.differenceBetweenDates(leave.getStartDate(), leave.getEndDate());
+				Integer validLeaveDays = totalNoOfLeaveDaysApplied.intValue() - noOfHolidaysBetween - noOfSundaysBetween;
+				Integer balance = employeeLeaveBalance - validLeaveDays;
+				
+				balanceRepository.updateEmployeeBalance(balance, employee.getEmployeeId());
+				
+				log.info("Leave applied and balance updated successfully");
 
 		return leaveModel;
 
@@ -290,11 +309,5 @@ public class LeaveService {
 		LocalDate mDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		return mDate;
 	}
-
-//	@Scheduled(cron = "00 57 12 * * ?")
-//	@Transactional
-//	public void testUpdate() {
-//		balanceRepository.updateEmployeeBalance(71, 18L);
-//	}
 
 }

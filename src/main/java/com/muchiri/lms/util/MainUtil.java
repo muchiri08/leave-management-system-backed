@@ -7,7 +7,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class MainUtil {
 
 	/*
@@ -15,7 +18,7 @@ public class MainUtil {
 	 * 
 	 * @return return the sundays' count
 	 */
-	public int getNoOfSundays(LocalDate startDate, LocalDate endDate) {
+	public Integer getNoOfSundays(LocalDate startDate, LocalDate endDate) {
 		int count = 0;
 		// changing LocalDate to Calendar
 		Calendar cStartDate = Calendar.getInstance();
@@ -39,15 +42,20 @@ public class MainUtil {
 	 * 
 	 * @return return the holidays' count
 	 */
-	public int getNoOfHolidays(List<LocalDate> holidays, LocalDate startDate, LocalDate endDate) {
+	public Integer getNoOfHolidays(List<LocalDate> holidays, LocalDate startDate, LocalDate endDate) {
 		int count = 0;
+		log.info("Method start");
 		while (startDate.isBefore(endDate)) {
+			log.info("started while loop");
 			for (LocalDate holiday : holidays) {
+				log.info("started for loop");
 				if (startDate.equals(holiday)) {
+					log.info("checking the condition");
 					count++;
 				}
 			}
-			startDate.plusDays(1);
+			log.info("incrementing day by 1");
+			startDate = startDate.plusDays(1);
 		}
 		return count;
 	}

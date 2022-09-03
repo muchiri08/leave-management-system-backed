@@ -303,6 +303,13 @@ public class LeaveService {
 				.collect(Collectors.toList());
 		return mLeaves;
 	}
+	
+	public boolean deleteLeaveRequest(Long id) {
+		Leave leave = leaveRepository.findById(id).get();
+		leaveRepository.delete(leave);
+		
+		return true;
+	}
 
 	// converts string to date
 	private LocalDate convertedDate(String date) {

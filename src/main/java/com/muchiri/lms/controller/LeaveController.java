@@ -1,6 +1,8 @@
 package com.muchiri.lms.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -105,6 +107,18 @@ public class LeaveController {
 	@GetMapping("/my-leaves/{id}")
 	public List<LeaveModel> getEmployeeLeaves(@PathVariable("id") Long id) {
 		return leaveService.getEmployeeLeaves(id);
+	}
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@DeleteMapping("/delete-leave/{id}")
+	public ResponseEntity<Map<String, Boolean>> deleteLeaveRequest(@PathVariable("id") Long id){
+		boolean deleted = false;
+		deleted = leaveService.deleteLeaveRequest(id);
+		
+		Map<String, Boolean> response = new HashMap<>();
+		response.put("deleted", deleted);
+		
+		return ResponseEntity.ok(response);
 	}
 
 }

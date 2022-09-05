@@ -192,6 +192,11 @@ public class EmployeeService {
 
 		return true;
 	}
+	
+	//Gets leave balance by employee
+	public Integer getLeaveBalance(Long id) {
+		return balanceRepository.getBalByEmployeeId(id);
+	}
 
 	// check if hod already exists in a department
 	private boolean checkIfHodExists(Employee employee) {

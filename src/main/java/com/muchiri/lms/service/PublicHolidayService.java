@@ -39,7 +39,7 @@ public class PublicHolidayService {
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-04-15"), "Good Friday"));
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-04-18"), "Easter Monday"));
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-05-01"), "Labour Day"));
-		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-06-15"), "Madaraka Day"));
+		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-06-01"), "Madaraka Day"));
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-10-20"), "Mashujaa Day"));
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-12-12"), "Jamhuri Day"));
 		holidays.add(new PublicHoliday(null, LocalDate.parse("2022-04-15"), "Good Friday"));
@@ -53,7 +53,7 @@ public class PublicHolidayService {
 	public List<PublicHolidayModel> getAllHolidays() {
 		List<PublicHoliday> holidays = publicHolidayRepository.findAll();
 		List<PublicHolidayModel> mHolidays = holidays.stream()
-				.map(holiday -> new PublicHolidayModel(holiday.getHolidayDate().toString(), holiday.getDescription()))
+				.map(holiday -> new PublicHolidayModel(holiday.getId(), holiday.getHolidayDate().toString(), holiday.getDescription()))
 				.collect(Collectors.toList());
 
 		return mHolidays;
@@ -71,7 +71,7 @@ public class PublicHolidayService {
 	 * holiday dates are inremented by 1 year
 	 */
 	@Scheduled(cron = "00 59 23 L * ?")
-	public void getHolidayDates() {
+	public void incrementHolidayDates() {
 
 		List<PublicHoliday> holidays = publicHolidayRepository.findAll();
 		LocalDate date = holidays.get(0).getHolidayDate();

@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class PublicHolidayModel {
 	
+	public Long holidayId;
 	public String holidayDate;
 	public String description;
 

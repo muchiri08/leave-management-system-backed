@@ -172,6 +172,12 @@ public class MainController {
 		
 		return ResponseEntity.ok(response);
 	}
+	
+	@PreAuthorize("hasAnyRole('HR', 'HOD', 'CASUAL_EMPLOYEE')")
+	@GetMapping("/leave-balance/{id}")
+	public Integer getLeaveBalanceByEmployeeId(@PathVariable("id") Long id) {
+		return employeeService.getLeaveBalance(id);
+	}
 		
 	
 	//checks if response body of employee is empty or not

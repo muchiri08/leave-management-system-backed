@@ -1,5 +1,6 @@
 package com.muchiri.lms.controller;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +25,11 @@ import com.muchiri.lms.model.PublicHolidayModel;
 import com.muchiri.lms.service.DepartmentService;
 import com.muchiri.lms.service.EmployeeService;
 import com.muchiri.lms.service.PublicHolidayService;
+import com.muchiri.lms.service.ReportService;
 import com.muchiri.lms.service.RoleService;
 
 import lombok.AllArgsConstructor;
+import net.sf.jasperreports.engine.JRException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -36,7 +39,8 @@ public class MainController {
 	private final EmployeeService employeeService;
 	private final DepartmentService departmentService;
 	private final RoleService roleService;
-	PublicHolidayService publicHolidayService;
+	private final PublicHolidayService publicHolidayService;
+	private final ReportService reportService;
 	
 	@PostMapping("/newEmployee")
 	@PreAuthorize("hasAnyRole('ADMIN', 'HR')")
@@ -177,6 +181,12 @@ public class MainController {
 	@GetMapping("/leave-balance/{id}")
 	public Integer getLeaveBalanceByEmployeeId(@PathVariable("id") Long id) {
 		return employeeService.getLeaveBalance(id);
+	}
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@GetMapping("/report/{format}")
+	public ResponseEntity<byte[]> generateReport(@PathVariable("format") String format) throws FileNotFoundException, JRException{
+		return reportService.generateLeaveReport(format);
 	}
 		
 	

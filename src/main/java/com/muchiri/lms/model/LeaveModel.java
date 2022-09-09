@@ -12,6 +12,7 @@ public class LeaveModel {
 	private Long leaveId;
 	private String firstName;
 	private String lastName;
+	private String departmentName;
 	private String leaveType;
 	private String startDate;
 	private String endDate;
@@ -36,6 +37,21 @@ public class LeaveModel {
 		this.endDate = endDate;
 		this.reason = reason;
 		this.status = status;
+	}
+
+	public LeaveModel(Long leaveId, String firstName, String lastName, String leaveType, String startDate,
+			String endDate, String reason, String status, String dateOfCreation, String approvedBy) {
+		super();
+		this.leaveId = leaveId;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.leaveType = leaveType;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.reason = reason;
+		this.status = status;
+		this.dateOfCreation = dateOfCreation;
+		this.approvedBy = approvedBy;
 	}
 	
 	

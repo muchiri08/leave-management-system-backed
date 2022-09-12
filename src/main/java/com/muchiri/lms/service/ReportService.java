@@ -2,6 +2,10 @@ package com.muchiri.lms.service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +17,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import com.muchiri.lms.entity.Leave;
+import com.muchiri.lms.exception.LeaveSystemException;
 import com.muchiri.lms.model.LeaveModel;
 import com.muchiri.lms.repository.LeaveRepository;
 
@@ -35,15 +41,24 @@ public class ReportService {
 
 	private final LeaveRepository leaveRepository;
 
-	public ResponseEntity<byte[]> generateLeaveReport(String format) throws FileNotFoundException, JRException {
+	public ResponseEntity<byte[]> generateLeaveReport(String startDate, String endDate, String format)
+			throws FileNotFoundException, JRException {
+		LocalDate sDate = convertedDate(startDate);
+		LocalDate eDate = convertedDate(endDate);
 
-		List<Leave> leaves = leaveRepository.findAll();
+		List<Leave> leaves = leaveRepository.getLeaveBetween2Dates(LocalDateTime.of(sDate, LocalTime.MIN),
+				LocalDateTime.of(eDate, LocalTime.MAX));
+		
+		if (leaves.isEmpty()) {
+			throw new LeaveSystemException("No leaves found for the specified dates");
+		}
+
 		List<LeaveModel> mLeaves = leaves.stream()
 				.map(report -> new LeaveModel(report.getLeaveId(), report.getEmployee().getFirstName(),
 						report.getEmployee().getLastName(), report.getEmployee().getDepartment().getDepartmentName(),
 						report.getLeaveType().getLeaveName(), report.getStartDate().toString(),
-						report.getEndDate().toString(),report.getReason(), report.getStatus(), report.getDateOfCreation().toString(),
-						report.getApprovedBy()))
+						report.getEndDate().toString(), report.getReason(), report.getStatus(),
+						report.getDateOfCreation().toString(), report.getApprovedBy()))
 				.collect(Collectors.toList());
 
 		File file = ResourceUtils.getFile("classpath:leave_report.jrxml");
@@ -63,7 +78,11 @@ public class ReportService {
 		} else {
 			return new ResponseEntity<byte[]>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
 
+	private LocalDate convertedDate(String date) {
+		LocalDate mDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		return mDate;
 	}
 
 }
